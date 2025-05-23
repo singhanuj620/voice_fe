@@ -65,10 +65,19 @@ export default function VoiceToText() {
           method: "POST",
           body: formData,
         });
-        const data = await res.json();
-        setApiResponse(data.text || JSON.stringify(data) || "No text returned");
+        // Expecting audio file in response
+        if (!res.ok) throw new Error("Failed to get audio response");
+        const audioBlob = await res.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        setApiResponse(null); // No text, just audio
+        setAudioUrl(audioUrl);
+        // Auto play audio once (not loop)
+        setTimeout(() => {
+          const audio = document.getElementById('voice-audio-player');
+          if (audio) audio.play();
+        }, 100);
       } catch (e) {
-        setApiResponse("Error sending audio: " + e.message);
+        setApiResponse("Error receiving audio: " + e.message);
       }
       setLoading(false);
     };
@@ -227,25 +236,34 @@ export default function VoiceToText() {
             {apiResponse}
           </div>
         )}
-        {/* Show download button if audio is available */}
+        {/* Show download button and audio player if audio is available */}
         {audioUrl && (
-          <a
-            href={audioUrl}
-            download="voice.webm"
-            style={{
-              marginTop: 16,
-              display: "inline-block",
-              background: "var(--accent)",
-              color: "#fff",
-              padding: "10px 20px",
-              borderRadius: 6,
-              fontWeight: 600,
-              textDecoration: "none",
-              fontSize: 16,
-            }}
-          >
-            Download .webm
-          </a>
+          <>
+            {/* <a
+              href={audioUrl}
+              download="voice.webm"
+              style={{
+                marginTop: 16,
+                display: "inline-block",
+                background: "var(--accent)",
+                color: "#fff",
+                padding: "10px 20px",
+                borderRadius: 6,
+                fontWeight: 600,
+                textDecoration: "none",
+                fontSize: 16,
+              }}
+            >
+              Download .webm
+            </a> */}
+            {/* Audio player for playback controls */}
+            <audio
+              id="voice-audio-player"
+              src={audioUrl}
+              controls
+              style={{ display: "block", marginTop: 16, width: 320 }}
+            />
+          </>
         )}
       </div>
     </section>
