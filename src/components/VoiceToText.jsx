@@ -9,6 +9,9 @@ export default function VoiceToText() {
   const [transcript, setTranscript] = useState("");
   const [audioUrl, setAudioUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
   const recognitionRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunks = useRef([]);
@@ -65,10 +68,19 @@ export default function VoiceToText() {
           method: "POST",
           body: formData,
         });
-        const data = await res.json();
-        setApiResponse(data.text || JSON.stringify(data) || "No text returned");
+        // Expecting audio file in response
+        if (!res.ok) throw new Error("Failed to get audio response");
+        const audioBlob = await res.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        setApiResponse(null); // No text, just audio
+        setAudioUrl(audioUrl);
+        // Auto play audio once (not loop)
+        setTimeout(() => {
+          const audio = document.getElementById("voice-audio-player");
+          if (audio) audio.play();
+        }, 100);
       } catch (e) {
-        setApiResponse("Error sending audio: " + e.message);
+        setApiResponse("Error receiving audio: " + e.message);
       }
       setLoading(false);
     };
@@ -87,6 +99,35 @@ export default function VoiceToText() {
     setRecording(false);
   };
 
+  const handleFileChange = (e) => {
+    setUploadFile(e.target.files[0]);
+    setUploadMessage("");
+  };
+
+  const handleFileUpload = async (e) => {
+    e.preventDefault();
+    if (!uploadFile) return;
+    setUploadLoading(true);
+    setUploadMessage("");
+    try {
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+      const res = await fetch(`${BE_BASE_URL}/upload-report-file`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data && data.message) {
+        setUploadMessage(data.message);
+      } else {
+        setUploadMessage("Upload complete.");
+      }
+    } catch (e) {
+      setUploadMessage("Error uploading file: " + e.message);
+    }
+    setUploadLoading(false);
+  };
+
   return (
     <section className="section" style={{ minHeight: "70vh" }}>
       <h2 className="section-title">Voice to Text</h2>
@@ -100,6 +141,84 @@ export default function VoiceToText() {
         Press the microphone to record your voice. Your speech will be converted
         to text using our AI backend.
       </p>
+      {/* File upload section for reports */}
+      <div
+        style={{
+          margin: "32px auto 0 auto",
+          padding: 24,
+          background: "#f8fafc",
+          borderRadius: 10,
+          maxWidth: 420,
+          boxShadow: "0 2px 12px 0 rgba(0,0,0,0.04)",
+          border: "1px solid #e3e3e3",
+        }}
+      >
+        <h3
+          style={{
+            marginBottom: 12,
+            fontWeight: 600,
+            fontSize: 20,
+            color: "black",
+          }}
+        >
+          Upload Report File
+        </h3>
+        <form
+          onSubmit={handleFileUpload}
+          style={{ display: "flex", flexDirection: "column", gap: 12 }}
+        >
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            onChange={handleFileChange}
+            style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc" }}
+            disabled={uploadLoading}
+          />
+          <button
+            type="submit"
+            className="landing-hero-cta"
+            style={{ fontWeight: 600, fontSize: 16, padding: "10px 0" }}
+            disabled={uploadLoading || !uploadFile}
+          >
+            {uploadLoading ? "Uploading..." : "Upload File"}
+          </button>
+        </form>
+        {uploadLoading && (
+          <div style={{ marginTop: 12 }}>
+            <div
+              className="spinner"
+              style={{
+                width: 28,
+                height: 28,
+                border: "3px solid #90caf9",
+                borderTop: "3px solid #1565c0",
+                borderRadius: "50%",
+                animation: "spin 1s linear infinite",
+                margin: "0 auto",
+              }}
+            />
+            <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+            <div style={{ color: "#1565c0", marginTop: 6, fontWeight: 500 }}>
+              Processing...
+            </div>
+          </div>
+        )}
+        {uploadMessage && !uploadLoading && (
+          <div
+            style={{
+              marginTop: 12,
+              color: "#388e3c",
+              fontWeight: 500,
+              background: "#e8f5e9",
+              padding: 10,
+              borderRadius: 6,
+            }}
+          >
+            {uploadMessage}
+          </div>
+        )}
+      </div>
+      <br></br>
       <div
         style={{
           display: "flex",
@@ -199,11 +318,22 @@ export default function VoiceToText() {
         {/* Show loading spinner and message while waiting for API response */}
         {loading && (
           <div style={{ marginTop: 16 }}>
-            <div className="spinner" style={{
-              width: 36, height: 36, border: '4px solid #90caf9', borderTop: '4px solid #1565c0', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto'
-            }} />
+            <div
+              className="spinner"
+              style={{
+                width: 36,
+                height: 36,
+                border: "4px solid #90caf9",
+                borderTop: "4px solid #1565c0",
+                borderRadius: "50%",
+                animation: "spin 1s linear infinite",
+                margin: "0 auto",
+              }}
+            />
             <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-            <div style={{ color: '#1565c0', marginTop: 8, fontWeight: 500 }}>Processing...</div>
+            <div style={{ color: "#1565c0", marginTop: 8, fontWeight: 500 }}>
+              Processing...
+            </div>
           </div>
         )}
         {/* Show API response in a separate block if available */}
@@ -227,25 +357,34 @@ export default function VoiceToText() {
             {apiResponse}
           </div>
         )}
-        {/* Show download button if audio is available */}
+        {/* Show download button and audio player if audio is available */}
         {audioUrl && (
-          <a
-            href={audioUrl}
-            download="voice.webm"
-            style={{
-              marginTop: 16,
-              display: "inline-block",
-              background: "var(--accent)",
-              color: "#fff",
-              padding: "10px 20px",
-              borderRadius: 6,
-              fontWeight: 600,
-              textDecoration: "none",
-              fontSize: 16,
-            }}
-          >
-            Download .webm
-          </a>
+          <>
+            {/* <a
+              href={audioUrl}
+              download="voice.webm"
+              style={{
+                marginTop: 16,
+                display: "inline-block",
+                background: "var(--accent)",
+                color: "#fff",
+                padding: "10px 20px",
+                borderRadius: 6,
+                fontWeight: 600,
+                textDecoration: "none",
+                fontSize: 16,
+              }}
+            >
+              Download .webm
+            </a> */}
+            {/* Audio player for playback controls */}
+            <audio
+              id="voice-audio-player"
+              src={audioUrl}
+              controls
+              style={{ display: "block", marginTop: 16, width: 320 }}
+            />
+          </>
         )}
       </div>
     </section>
