@@ -1,7 +1,7 @@
 // VoiceToText.jsx
-import React, { useRef, useState } from "react";
-import "../landing.css";
+import { useRef, useState } from "react";
 import { FaMicrophone, FaStop } from "react-icons/fa";
+import "../landing.css";
 const BE_BASE_URL = import.meta.env.VITE_BE_BASE_URL;
 
 export default function VoiceToText() {
@@ -18,7 +18,7 @@ export default function VoiceToText() {
   const [apiResponse, setApiResponse] = useState(null);
   // Accent/voice selection state
   const [accentCode, setAccentCode] = useState("en-IN");
-  const [voiceName, setVoiceName] = useState("en-IN-Wavenet-A");
+  const [voiceName, setVoiceName] = useState("en-IN-Female");
 
   const startRecording = async () => {
     setTranscript("");
@@ -397,7 +397,11 @@ export default function VoiceToText() {
         <label style={{ fontWeight: 600, marginRight: 8 }}>Select Accent:</label>
         <select
           value={accentCode}
-          onChange={(e) => setAccentCode(e.target.value)}
+          onChange={(e) => {
+            setAccentCode(e.target.value);
+            // Set default voice for accent
+            setVoiceName(e.target.value === "en-IN" ? "en-IN-Female" : "en-US-Female");
+          }}
           style={{
             padding: 6,
             borderRadius: 4,
@@ -407,9 +411,6 @@ export default function VoiceToText() {
         >
           <option value="en-IN">English (India)</option>
           <option value="en-US">English (US)</option>
-          <option value="en-GB">English (UK)</option>
-          <option value="en-AU">English (Australia)</option>
-          <option value="en-ZA">English (South Africa)</option>
         </select>
         <label style={{ fontWeight: 600, marginRight: 8 }}>Voice:</label>
         <select
@@ -417,35 +418,16 @@ export default function VoiceToText() {
           onChange={(e) => setVoiceName(e.target.value)}
           style={{ padding: 6, borderRadius: 4, fontSize: 16 }}
         >
-          {/* Example voices for each accent */}
           {accentCode === "en-IN" && (
             <>
-              <option value="en-IN-Wavenet-A">Wavenet-A (IN)</option>
-              <option value="en-IN-Wavenet-B">Wavenet-B (IN)</option>
+              <option value="en-IN-Male">Male</option>
+              <option value="en-IN-Female">Female</option>
             </>
           )}
           {accentCode === "en-US" && (
             <>
-              <option value="en-US-Wavenet-D">Wavenet-D (US)</option>
-              <option value="en-US-Wavenet-F">Wavenet-F (US)</option>
-            </>
-          )}
-          {accentCode === "en-GB" && (
-            <>
-              <option value="en-GB-Wavenet-A">Wavenet-A (UK)</option>
-              <option value="en-GB-Wavenet-B">Wavenet-B (UK)</option>
-            </>
-          )}
-          {accentCode === "en-AU" && (
-            <>
-              <option value="en-AU-Wavenet-B">Wavenet-B (AU)</option>
-              <option value="en-AU-Wavenet-D">Wavenet-D (AU)</option>
-            </>
-          )}
-          {accentCode === "en-ZA" && (
-            <>
-              <option value="en-ZA-Wavenet-A">Wavenet-A (ZA)</option>
-              <option value="en-ZA-Wavenet-B">Wavenet-B (ZA)</option>
+              <option value="en-US-Male">Male</option>
+              <option value="en-US-Female">Female</option>
             </>
           )}
         </select>
