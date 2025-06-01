@@ -21,6 +21,9 @@ export default function VoiceToText() {
   const [voiceName, setVoiceName] = useState("en-IN-Female");
   // STT input language selection state
   const [sttLanguage, setSttLanguage] = useState("en-US");
+  // State for typed question
+  const [typedQuestion, setTypedQuestion] = useState("");
+  const [typedLoading, setTypedLoading] = useState(false);
 
   const startRecording = async () => {
     setTranscript("");
@@ -134,6 +137,37 @@ export default function VoiceToText() {
       setUploadMessage("Error uploading file: " + e.message);
     }
     setUploadLoading(false);
+  };
+
+  // Handler for submitting typed question
+  const handleTypedSubmit = async (e) => {
+    e.preventDefault();
+    if (!typedQuestion.trim()) return;
+    setTypedLoading(true);
+    setApiResponse(null);
+    setAudioUrl(null);
+    try {
+      const formData = new FormData();
+      formData.append("text", typedQuestion);
+      formData.append("accent_code", accentCode);
+      formData.append("voice_name", voiceName);
+      const res = await fetch(`${BE_BASE_URL}/text-to-voice`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Failed to get audio response");
+      const audioBlob = await res.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      setApiResponse(null);
+      setAudioUrl(audioUrl);
+      setTimeout(() => {
+        const audio = document.getElementById("voice-audio-player");
+        if (audio) audio.play();
+      }, 100);
+    } catch (e) {
+      setApiResponse("Error receiving audio: " + e.message);
+    }
+    setTypedLoading(false);
   };
 
   return (
@@ -444,6 +478,28 @@ export default function VoiceToText() {
           )}
         </select>
       </div>
+      {/* Typed question input */}
+      <form
+        onSubmit={handleTypedSubmit}
+        style={{ display: "flex", flexDirection: "row", gap: 8, justifyContent: "center", margin: "16px 0" }}
+      >
+        <input
+          type="text"
+          value={typedQuestion}
+          onChange={e => setTypedQuestion(e.target.value)}
+          placeholder="Type your question..."
+          style={{ padding: 10, borderRadius: 6, border: "1px solid #ccc", fontSize: 17, width: 320 }}
+          disabled={typedLoading}
+        />
+        <button
+          type="submit"
+          className="landing-hero-cta"
+          style={{ fontWeight: 600, fontSize: 16, padding: "10px 18px" }}
+          disabled={typedLoading || !typedQuestion.trim()}
+        >
+          {typedLoading ? "Processing..." : "Ask"}
+        </button>
+      </form>
     </section>
   );
 }
