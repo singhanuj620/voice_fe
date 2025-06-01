@@ -19,6 +19,8 @@ export default function VoiceToText() {
   // Accent/voice selection state
   const [accentCode, setAccentCode] = useState("en-IN");
   const [voiceName, setVoiceName] = useState("en-IN-Female");
+  // STT input language selection state
+  const [sttLanguage, setSttLanguage] = useState("en-US");
 
   const startRecording = async () => {
     setTranscript("");
@@ -32,7 +34,7 @@ export default function VoiceToText() {
       return;
     }
     const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
+    recognition.lang = sttLanguage; // Use selected STT language
     recognition.interimResults = true;
     recognition.continuous = true;
     recognition.onresult = (event) => {
@@ -69,6 +71,7 @@ export default function VoiceToText() {
         formData.append("file", blob, "voice.webm");
         formData.append("accent_code", accentCode);
         formData.append("voice_name", voiceName);
+        formData.append("stt_language_code", sttLanguage); // Pass STT language to backend
         const res = await fetch(`${BE_BASE_URL}/voice-to-text`, {
           method: "POST",
           body: formData,
@@ -394,6 +397,15 @@ export default function VoiceToText() {
       </div>
       {/* Accent/voice selection dropdowns */}
       <div style={{ margin: "24px 0 16px 0", textAlign: "center" }}>
+        <label style={{ fontWeight: 600, marginRight: 8 }}>Input Language:</label>
+        <select
+          value={sttLanguage}
+          onChange={e => setSttLanguage(e.target.value)}
+          style={{ padding: 6, borderRadius: 4, fontSize: 16, marginRight: 12 }}
+        >
+          <option value="en-US">English</option>
+          <option value="hi-IN">Hindi</option>
+        </select>
         <label style={{ fontWeight: 600, marginRight: 8 }}>Select Accent:</label>
         <select
           value={accentCode}
