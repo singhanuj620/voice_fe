@@ -496,10 +496,7 @@ export default function VoiceToText() {
             </>
           )}
           {sttLanguage === "hi-IN" && accentCode === "hi-IN" && (
-            <>
-              <option value="hi-IN-Male">Male</option>
-              <option value="hi-IN-Female">Female</option>
-            </>
+            <option value="hi-IN-Female">Female</option>
           )}
         </select>
       </div>
