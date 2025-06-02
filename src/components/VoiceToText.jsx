@@ -434,7 +434,17 @@ export default function VoiceToText() {
         <label style={{ fontWeight: 600, marginRight: 8 }}>Input Language:</label>
         <select
           value={sttLanguage}
-          onChange={e => setSttLanguage(e.target.value)}
+          onChange={e => {
+            setSttLanguage(e.target.value);
+            // Reset accent and voice when input language changes
+            if (e.target.value === "en-US") {
+              setAccentCode("en-IN");
+              setVoiceName("en-IN-Female");
+            } else if (e.target.value === "hi-IN") {
+              setAccentCode("hi-IN");
+              setVoiceName("hi-IN-Female");
+            }
+          }}
           style={{ padding: 6, borderRadius: 4, fontSize: 16, marginRight: 12 }}
         >
           <option value="en-US">English</option>
@@ -457,9 +467,15 @@ export default function VoiceToText() {
             marginRight: 12,
           }}
         >
-          <option value="en-IN">English (India)</option>
-          <option value="en-US">English (US)</option>
-          <option value="hi-IN">Hindi (India)</option>
+          {sttLanguage === "en-US" && (
+            <>
+              <option value="en-IN">English (India)</option>
+              <option value="en-US">English (US)</option>
+            </>
+          )}
+          {sttLanguage === "hi-IN" && (
+            <option value="hi-IN">Hindi (India)</option>
+          )}
         </select>
         <label style={{ fontWeight: 600, marginRight: 8 }}>Voice:</label>
         <select
@@ -467,19 +483,19 @@ export default function VoiceToText() {
           onChange={(e) => setVoiceName(e.target.value)}
           style={{ padding: 6, borderRadius: 4, fontSize: 16 }}
         >
-          {accentCode === "en-IN" && (
+          {sttLanguage === "en-US" && accentCode === "en-IN" && (
             <>
               <option value="en-IN-Male">Male</option>
               <option value="en-IN-Female">Female</option>
             </>
           )}
-          {accentCode === "en-US" && (
+          {sttLanguage === "en-US" && accentCode === "en-US" && (
             <>
               <option value="en-US-Male">Male</option>
               <option value="en-US-Female">Female</option>
             </>
           )}
-          {accentCode === "hi-IN" && (
+          {sttLanguage === "hi-IN" && accentCode === "hi-IN" && (
             <>
               <option value="hi-IN-Male">Male</option>
               <option value="hi-IN-Female">Female</option>
