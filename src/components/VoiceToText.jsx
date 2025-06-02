@@ -446,7 +446,9 @@ export default function VoiceToText() {
           onChange={(e) => {
             setAccentCode(e.target.value);
             // Set default voice for accent
-            setVoiceName(e.target.value === "en-IN" ? "en-IN-Female" : "en-US-Female");
+            if (e.target.value === "en-IN") setVoiceName("en-IN-Female");
+            else if (e.target.value === "en-US") setVoiceName("en-US-Female");
+            else if (e.target.value === "hi-IN") setVoiceName("hi-IN-Female");
           }}
           style={{
             padding: 6,
@@ -457,6 +459,7 @@ export default function VoiceToText() {
         >
           <option value="en-IN">English (India)</option>
           <option value="en-US">English (US)</option>
+          <option value="hi-IN">Hindi (India)</option>
         </select>
         <label style={{ fontWeight: 600, marginRight: 8 }}>Voice:</label>
         <select
@@ -474,6 +477,12 @@ export default function VoiceToText() {
             <>
               <option value="en-US-Male">Male</option>
               <option value="en-US-Female">Female</option>
+            </>
+          )}
+          {accentCode === "hi-IN" && (
+            <>
+              <option value="hi-IN-Male">Male</option>
+              <option value="hi-IN-Female">Female</option>
             </>
           )}
         </select>
