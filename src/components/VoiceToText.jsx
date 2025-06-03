@@ -211,7 +211,7 @@ export default function VoiceToText() {
         >
           <input
             type="file"
-            accept=".pdf,.doc,.docx,.xls,.xlsx,.twbx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/x-twbx"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.twbx,.twb,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/x-twbx,application/xml"
             onChange={handleFileChange}
             style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc" }}
             disabled={uploadLoading}
